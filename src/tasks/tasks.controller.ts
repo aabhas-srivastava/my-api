@@ -1,27 +1,41 @@
-import { Controller, Get, Param, Query, Post, Body } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Query, Patch, Delete, ParseUUIDPipe } from '@nestjs/common';
 import { TasksService } from './tasks.service.js';
+import { CreateTaskDto } from './dto/create-task.dto.js';
+import { UpdateTaskDto } from './dto/update-task.dto.js';
 
 @Controller('tasks')
 export class TasksController {
-    constructor(private readonly tasksService: TasksService) {}
+  constructor(private readonly tasksService: TasksService) {}
 
-    @Get()
-    findAll(
-        @Query('status') status ?: string,
-        @Query('search') search ?: string,
-    ) {
-        return this.tasksService.findAll(status, search);
-    }
+  @Post()
+  create(@Body() createTaskDto: CreateTaskDto) {
+    return this.tasksService.create(createTaskDto);
+  }
 
-    @Get(':id')
-    findOne(@Param('id') id :string){
-        return this.tasksService.findOne(Number(id));
-    }
+  @Get()
+  findAll(
+    @Query('status') status?: string,
+    @Query('priority') priority?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.tasksService.findAll(status, priority, search);
+  }
 
-    @Post()
-    create(
-        @Body() body : {title : string; description : string; priority : string; status : string}
-    ) {
-        return this.tasksService.create(body);
-    }
+  @Get(':id')
+  findOne(@Param('id', new ParseUUIDPipe()) id: string) {
+    return this.tasksService.findOne(id);
+  }
+
+  @Patch(':id')
+  update(
+    @Param('id', new ParseUUIDPipe()) id : string,
+    @Body() updateTaskDto : UpdateTaskDto,
+  ){
+    return this.tasksService.update(id, updateTaskDto);
+  }
+
+  @Delete(':id')
+  remove(@Param('id', new ParseUUIDPipe()) id : string){
+    return this.tasksService.remove(id);
+  }
 }
