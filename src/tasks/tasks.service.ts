@@ -12,16 +12,17 @@ export class TasksService {
     @InjectModel(Task.name) private taskModel: Model<Task>,
   ) {}
 
-  async create(createTaskDto: CreateTaskDto) {
+  async create(createTaskDto: CreateTaskDto, userId : string) {
     const newTask = new this.taskModel({
       id : uuidv4(),
       ...createTaskDto,
+      userId,
     });
     return newTask.save();
   }
 
-  async findAll(status?: string, priority?: string, search?: string) {
-    const filter: any = {};
+  async findAll(userId : string, status?: string, priority?: string, search?: string) {
+    const filter: any = {userId};
 
     if (status) {
       filter.status = status;
@@ -38,8 +39,8 @@ export class TasksService {
     return this.taskModel.find(filter).exec();
   }
 
-  async findOne(id: string) {
-    const task = await this.taskModel.findOne({id}).exec();
+  async findOne(id: string, userId : string) {
+    const task = await this.taskModel.findOne({id, userId}).exec();
 
     if (!task) {
       throw new NotFoundException(`task ID ${id} not found`);
@@ -48,8 +49,8 @@ export class TasksService {
     return task;
   }
 
-  async update(id : string, updateTaskDto : UpdateTaskDto){
-    const updateTask = await this.taskModel.findOneAndUpdate({id}, updateTaskDto, {new : true}).exec();
+  async update(id : string, userId : string,  updateTaskDto : UpdateTaskDto){
+    const updateTask = await this.taskModel.findOneAndUpdate({id, userId}, updateTaskDto, {new : true}).exec();
 
     if(!updateTask){
       throw new NotFoundException('task not found');
@@ -58,11 +59,11 @@ export class TasksService {
     return updateTask;
   }
 
-  async remove(id : string){
-    const result = await this.taskModel.findOneAndDelete({id}).exec();
+  async remove(id : string, userId : string){
+    const result = await this.taskModel.findOneAndDelete({id, userId}).exec();
 
     if(!result){
-      return new NotFoundException('task not found');
+      throw new NotFoundException('task not found');
     }
 
     return {message : 'task deleted successfully'};
